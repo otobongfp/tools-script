@@ -11,9 +11,9 @@ async function getBlocks() {
       "https://nodes.lto.network/blocks/height"
     );
 
-    // Subtract 45,000 from the current block height to know where to start iterating from
+    // Subtract from the current block height to know where to start iterating from
     const height = currentBlockHeight.data.height;
-    let from = height - 10500;
+    let from = height - 10000;
     let to = from + 90;
 
     let blocks = [];
