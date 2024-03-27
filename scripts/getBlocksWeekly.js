@@ -13,7 +13,7 @@ async function getBlocks() {
 
     // Subtract from the current block height to know where to start iterating from
     const height = currentBlockHeight.data.height;
-    let from = height - 10100;
+    let from = height - 10000;
     let to = from + 90;
 
     let blocks = [];
