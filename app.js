@@ -39,8 +39,8 @@ scripts.forEach((script) => {
   });
 });
 
-// Schedule the cron job to run every 2 hours
-cron.schedule("0 */2 * * *", () => {
+//run every 2 hours
+cron.schedule("*/15 * * * *", () => {
   console.log("Running the scripts...");
 
   // Execute scripts
