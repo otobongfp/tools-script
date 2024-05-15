@@ -5,10 +5,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 const URL = process.env.API_URL;
 
-const currentFilePath = __filename;
 const currentDirPath = __dirname;
 
-// Define the directory structure
 const dataDir = currentDirPath + "/../data";
 const addressesFilePath = dataDir + "/addresses.json";
 const allAddressesFilePath = dataDir + "/allAddresses.json";
@@ -99,7 +97,6 @@ async function getAddresses() {
     console.error("Error:", error.message);
   }
 }
-
 
 async function handleWrite(addresses) {
   try {
