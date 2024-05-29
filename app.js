@@ -22,7 +22,6 @@ const scripts = [
   "getTransactions.js",
 ];
 
-// Function to execute a script with error handling
 const runScript = (script) => {
   const childProcess = spawn("node", [`scripts/${script}`]);
 
@@ -42,7 +41,6 @@ const runScript = (script) => {
 console.log("Running the scripts...");
 scripts.forEach(runScript);
 
-// Every 15 mins (consider adjusting the schedule)
 cron.schedule("*/15 * * * *", () => {
   console.log("Running the scripts...");
   scripts.forEach(runScript);

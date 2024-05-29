@@ -4,7 +4,6 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 const URL = process.env.API_URL;
-
 const currentDirPath = __dirname;
 
 const dataDir = currentDirPath + "/../data";
