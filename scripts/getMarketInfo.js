@@ -46,7 +46,7 @@ class MarketInfo {
 
       const result = {
         geckoPrice: dataFromCoinGecko
-          ? parseFloat(dataFromCoinGecko.usd.toFixed(3))
+          ? parseFloat(dataFromCoinGecko.usd.toFixed(4))
           : null,
         geckoMarketCap: dataFromCoinGecko
           ? Math.floor(dataFromCoinGecko.usd_market_cap)
