@@ -55,6 +55,10 @@ class MarketInfo {
         estimatedMarketCap: estMarketCap,
       };
 
+      console.log(result);
+
+      this.handleWrite(result);
+
       return result;
     } catch (error) {
       console.log("error", error);
@@ -88,6 +92,10 @@ class MarketInfo {
         }
       );
     });
+  }
+
+  static async handleWrite(jsonData) {
+    fs.writeFileSync(transactionsPath, JSON.stringify(jsonData));
   }
 }
 

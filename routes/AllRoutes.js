@@ -75,4 +75,22 @@ router.get("/blocks-monthly", (req, res) => {
   }
 });
 
+router.get("/marketInfo", (req, res) => {
+  const filePath = path.join(__dirname, "../data/marketData.json");
+
+  if (fs.existsSync(filePath)) {
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        console.error("Error reading JSON file:", err);
+        res.status(500).send("Internal Server Error");
+      } else {
+        res.setHeader("Content-Type", "application/json");
+        res.status(200).send(data);
+      }
+    });
+  } else {
+    res.status(404).send("File not found");
+  }
+});
+
 module.exports = router;
