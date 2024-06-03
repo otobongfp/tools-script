@@ -55,9 +55,9 @@ class MarketInfo {
         estimatedMarketCap: estMarketCap,
       };
 
-      console.log(result);
-
-      this.handleWrite(result);
+      if (result.geckoPrice || result.binancePrice !== null) {
+        this.handleWrite(result);
+      }
 
       return result;
     } catch (error) {
