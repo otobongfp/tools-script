@@ -2,81 +2,36 @@ const express = require("express");
 var router = express.Router();
 const fs = require("fs");
 const path = require("path");
+const Doc = require("../services/Doc.service");
+const LTOService = require("../services/LTO.service");
 
 router.get("/transactions", (req, res) => {
   const filePath = path.join(__dirname, "../data/transactions.json");
-
-  if (fs.existsSync(filePath)) {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading JSON file:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).send(data);
-      }
-    });
-  } else {
-    res.status(404).send("File not found");
-  }
+  Doc.readFile(filePath, res);
 });
 
 router.get("/blocks-daily", (req, res) => {
   const filePath = path.join(__dirname, "../data/blocks-daily.json");
-
-  if (fs.existsSync(filePath)) {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading JSON file:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).send(data);
-      }
-    });
-  } else {
-    res.status(404).send("File not found");
-  }
+  Doc.readFile(filePath, res);
 });
 
 router.get("/blocks-weekly", (req, res) => {
   const filePath = path.join(__dirname, "../data/blocks-weekly.json");
-
-  if (fs.existsSync(filePath)) {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading JSON file:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).send(data);
-      }
-    });
-  } else {
-    res.status(404).send("File not found");
-  }
+  Doc.readFile(filePath, res);
 });
 
 router.get("/blocks-monthly", (req, res) => {
   const filePath = path.join(__dirname, "../data/blocks-monthly.json");
-
-  if (fs.existsSync(filePath)) {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading JSON file:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).send(data);
-      }
-    });
-  } else {
-    res.status(404).send("File not found");
-  }
+  Doc.readFile(filePath, res);
 });
 
 router.get("/marketInfo", (req, res) => {
   const filePath = path.join(__dirname, "../data/marketData.json");
+  Doc.readFile(filePath, res);
+});
+
+router.post("/faucet", (req, res) => {
+  const filePath = path.join(__dirname, "../data/faucet.json");
 
   if (fs.existsSync(filePath)) {
     fs.readFile(filePath, "utf8", (err, data) => {
@@ -84,12 +39,23 @@ router.get("/marketInfo", (req, res) => {
         console.error("Error reading JSON file:", err);
         res.status(500).send("Internal Server Error");
       } else {
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).send(data);
+        let jsonData = [];
+        try {
+          jsonData = JSON.parse(data);
+        } catch (parseErr) {
+          console.error("Error parsing JSON file:", parseErr);
+          return res.status(500).send("Internal Server Error");
+        }
+        jsonData.push(req.body);
+        const { amount, address } = req.body;
+        console.log(amount, address);
+        LTOService.transfer(address, amount);
+        Doc.writeFile(filePath, jsonData);
       }
     });
   } else {
-    res.status(404).send("File not found");
+    const jsonData = [req.body];
+    Doc.writeFile(filePath, jsonData);
   }
 });
 
