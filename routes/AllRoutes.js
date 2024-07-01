@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const Doc = require("../services/Doc.service");
 const LTOService = require("../services/LTO.service");
+const FaucetService = require("../services/Faucet.service");
 
 router.get("/transactions", (req, res) => {
   const filePath = path.join(__dirname, "../data/transactions.json");
@@ -30,32 +31,38 @@ router.get("/marketInfo", (req, res) => {
   Doc.readFile(filePath, res);
 });
 
-router.post("/faucet", (req, res) => {
+router.post("/faucet", async (req, res) => {
   const filePath = path.join(__dirname, "../data/faucet.json");
 
-  if (fs.existsSync(filePath)) {
-    fs.readFile(filePath, "utf8", (err, data) => {
-      if (err) {
-        console.error("Error reading JSON file:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        let jsonData = [];
-        try {
-          jsonData = JSON.parse(data);
-        } catch (parseErr) {
-          console.error("Error parsing JSON file:", parseErr);
-          return res.status(500).send("Internal Server Error");
-        }
-        jsonData.push(req.body);
-        const { amount, address } = req.body;
-        console.log(amount, address);
-        LTOService.transfer(address, amount);
-        Doc.writeFile(filePath, jsonData);
+  try {
+    let jsonData = [];
+
+    if (fs.existsSync(filePath)) {
+      const data = await fs.promises.readFile(filePath, "utf8");
+      try {
+        jsonData = JSON.parse(data);
+      } catch (parseErr) {
+        console.error("Error parsing JSON file:", parseErr);
+        return res.status(500).send("Internal Server Error");
       }
-    });
-  } else {
-    const jsonData = [req.body];
-    Doc.writeFile(filePath, jsonData);
+    }
+
+    jsonData.push(req.body);
+
+    const validity = await FaucetService.reviewRequest(req.body);
+
+    if (validity) {
+      console.log("Can Receive");
+      //LTOService.transfer(address, amount);
+      res.status(200).json({ status: 200, message: "OK" });
+    } else {
+      res.sendStatus(403);
+    }
+
+    await Doc.writeFaucetFile(filePath, jsonData);
+  } catch (err) {
+    console.error("Error handling the faucet request:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 

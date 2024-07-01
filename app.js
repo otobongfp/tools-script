@@ -1,64 +1,13 @@
-// const express = require("express");
-// const cors = require("cors");
-// const morgan = require("morgan");
-// const path = require("path");
-// const cron = require("node-cron");
-// const { spawn } = require("child_process"); // non-blocking execution
-
-// // Routes
-// const AllRoutes = require("./routes/AllRoutes");
-
-// const app = express();
-// app.set("views", path.join(__dirname, "views"));
-// app.set("view engine", "ejs");
-// app.use(express.urlencoded({ extended: true }));
-// app.use(cors());
-// app.use(morgan("combined"));
-
-// const scripts = [
-//   "getMarketInfo.js",
-//   "getBlocksDaily.js",
-//   "getBlocksWeekly.js",
-//   "getBlocksMonthly.js",
-//   "getTransactions.js",
-// ];
-
-// const runScript = (script) => {
-//   const childProcess = spawn("node", [`scripts/${script}`]);
-
-//   childProcess.stdout.on("data", (data) => {
-//     console.log(`stdout: ${data.toString()}`);
-//   });
-
-//   childProcess.stderr.on("data", (data) => {
-//     console.error(`stderr: ${data.toString()}`);
-//   });
-
-//   childProcess.on("error", (error) => {
-//     console.error(`Error: ${error.message}`);
-//   });
-// };
-
-// cron.schedule("*/1 * * * *", () => {
-//   //console.log("Running the scripts...");
-//   scripts.forEach(runScript);
-// });
-
-// app.use(express.json());
-
-// app.use("/", AllRoutes);
-
-// module.exports = app;
-
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
 const cron = require("node-cron");
-const { spawn } = require("child_process"); // non-blocking execution
+const { spawn } = require("child_process");
 
 // Routes
 const AllRoutes = require("./routes/AllRoutes");
+const Doc = require("./services/Doc.service");
 
 const app = express();
 app.set("views", path.join(__dirname, "views"));
@@ -67,13 +16,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(morgan("combined"));
 
-const scripts = [
-  "getMarketInfo.js",
+const marketInfoScript = "getMarketInfo.js";
+const blocksMonthlyScript = "getBlocksMonthly.js";
+const otherScripts = [
   "getBlocksDaily.js",
   "getBlocksWeekly.js",
-  "getBlocksMonthly.js",
   "getTransactions.js",
 ];
+
+let areOtherScriptsRunning = false;
 
 const runScript = (script) => {
   const scriptPath = path.join(__dirname, "scripts", script);
@@ -104,7 +55,37 @@ const runScript = (script) => {
 };
 
 cron.schedule("*/1 * * * *", () => {
-  scripts.forEach(runScript);
+  runScript(marketInfoScript);
+});
+
+cron.schedule("*/1 * * * *", () => {
+  if (!areOtherScriptsRunning) {
+    areOtherScriptsRunning = true;
+    let scriptsCompleted = 0;
+    const scriptCount = otherScripts.length;
+
+    const scriptCallback = () => {
+      scriptsCompleted++;
+      if (scriptsCompleted === scriptCount) {
+        areOtherScriptsRunning = false;
+      }
+    };
+
+    otherScripts.forEach((script) => runScript(script, scriptCallback));
+  } else {
+    console.log(`Skipping other scripts because they are still running.`);
+  }
+});
+
+cron.schedule("*/5 * * * *", () => {
+  runScript(blocksMonthlyScript);
+});
+
+cron.schedule("0 0 * * *", () => {
+  //Reset the addresses for faucet every 24hrs
+  const jsonData = [];
+  const filePath = path.join(__dirname, "/data/faucet.json");
+  Doc.writeFaucetFile(filePath, jsonData);
 });
 
 app.use(express.json());
